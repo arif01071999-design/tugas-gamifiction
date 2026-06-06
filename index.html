@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Journey</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Nunito', sans-serif; }
+    .glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
+    .glass-dark { background: rgba(37,99,235,0.1); backdrop-filter: blur(8px); border: 1px solid rgba(37,99,235,0.15); }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px rgba(37,99,235,0.3)} 50%{box-shadow:0 0 40px rgba(37,99,235,0.6)} }
+    @keyframes confetti { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(300px) rotate(720deg);opacity:0} }
+    @keyframes badge-pop { 0%{transform:scale(0) rotate(-180deg)} 60%{transform:scale(1.2) rotate(10deg)} 100%{transform:scale(1) rotate(0deg)} }
+    @keyframes xp-fly { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-60px)} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    @keyframes progress-fill { from{width:0} }
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-slide-up { animation: slideUp 0.6s ease forwards; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-badge-pop { animation: badge-pop 0.6s ease forwards; }
+    .animate-xp-fly { animation: xp-fly 1.5s ease forwards; }
+    .animate-shake { animation: shake 0.4s ease; }
+    .animate-progress { animation: progress-fill 1s ease forwards; }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.1s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #2563EB, #1d4ed8); transition: all 0.3s; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(37,99,235,0.4); }
+    .btn-secondary { background: linear-gradient(135deg, #F59E0B, #d97706); transition: all 0.3s; }
+    .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245,158,11,0.4); }
+    .card-hover { transition: all 0.3s; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .dialogue-box { border-left: 4px solid #2563EB; }
+    .choice-btn { transition: all 0.2s; }
+    .choice-btn:hover { transform: scale(1.02); border-color: #2563EB; background: rgba(37,99,235,0.05); }
+    .choice-btn.correct { border-color: #22C55E; background: rgba(34,197,94,0.1); }
+    .choice-btn.incorrect { border-color: #EF4444; background: rgba(239,68,68,0.1); }
+    .sidebar-item { transition: all 0.2s; }
+    .sidebar-item:hover, .sidebar-item.active { background: rgba(37,99,235,0.1); color: #2563EB; }
+    .xp-notification { position: fixed; top: 80px; right: 20px; z-index: 1000; }
+    .streak-fire { display: inline-block; animation: float 1s ease-in-out infinite; }
+    .progress-bar-animated { transition: width 1s ease; }
+    .campus-bg { background: linear-gradient(135deg, #EEF2FF 0%, #F8FAFC 50%, #FEF3C7 100%); }
+    .hero-pattern { background-image: radial-gradient(circle at 20% 50%, rgba(37,99,235,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(245,158,11,0.05) 0%, transparent 50%), radial-gradient(circle at 50% 80%, rgba(34,197,94,0.05) 0%, transparent 50%); }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563EB',
+            secondary: '#F59E0B',
+            success: '#22C55E',
+            campus: { bg: '#F8FAFC', card: '#FFFFFF' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ <script src="/_sdk/telemetry_sdk.js"></script></head>
+ <body class="h-full bg-campus-bg overflow-auto">
+  <div id="app" class="h-full w-full"></div>
+  <script>
+// Game State
+const gameState = {
+  currentScreen: 'landing',
+  player: {
+    name: 'Student',
+    avatar: '👨‍🎓',
+    xp: 450,
+    coins: 120,
+    level: 3,
+    streak: 5,
+    stats: { academic: 65, english: 58, social: 45, happiness: 72 },
+    achievements: ['first_step', 'grammar_basics'],
+    completedLevels: [1, 2],
+    currentLevel: 3
+  }
+};
+
+// Content Data
+const levels = [
+  { id: 1, title: 'Arrival Day', emoji: '✈️', desc: 'Your first day on campus', unlocked: true },
+  { id: 2, title: 'Orientation Week', emoji: '🎓', desc: 'Meet your classmates', unlocked: true },
+  { id: 3, title: 'Finding Friends', emoji: '👋', desc: 'Build connections', unlocked: true },
+  { id: 4, title: 'First Assignment', emoji: '📝', desc: 'Write your first email', unlocked: false },
+  { id: 5, title: 'Classroom Discussion', emoji: '💬', desc: 'Share your opinions', unlocked: false },
+  { id: 6, title: 'Job Interview', emoji: '💼', desc: 'Professional English', unlocked: false },
+  { id: 7, title: 'Midterm Exam', emoji: '📖', desc: 'Reading comprehension', unlocked: false },
+  { id: 8, title: 'Group Project', emoji: '🤝', desc: 'Team collaboration', unlocked: false }
+];
+
+const dialogues = {
+  1: [
+    { character: 'Alex', avatar: '👦', text: "Hi there! You look new here. Are you a new student?", choices: [
+      { text: "Yes, I am. Nice to meet you!", correct: true, feedback: "Great response! Polite and friendly. +20 XP" },
+      { text: "No, I'm not.", correct: false, feedback: "Hmm, but you are a new student! Try being more friendly." },
+      { text: "Nice meet you.", correct: false, feedback: "Almost! The correct phrase is 'Nice to meet you.' Don't forget 'to'!" }
+    ]},
+    { character: 'Alex', avatar: '👦', text: "Welcome! I'm Alex. Where are you from?", choices: [
+      { text: "I'm from Thailand. This is my first time abroad!", correct: true, feedback: "Perfect! Clear and natural. +20 XP" },
+      { text: "I from Thailand.", correct: false, feedback: "Remember to use 'I'm' (I am) before the preposition 'from'." },
+      { text: "Thailand me.", correct: false, feedback: "Try making a complete sentence: 'I'm from Thailand.'" }
+    ]},
+    { character: 'Alex', avatar: '👦', text: "Cool! Let me show you around. Do you know where your dormitory is?", choices: [
+      { text: "Not yet. Could you help me find it?", correct: true, feedback: "Excellent! Polite request using 'Could you'. +20 XP" },
+      { text: "I don't know nothing.", correct: false, feedback: "Double negative! Say 'I don't know' instead of 'I don't know nothing'." },
+      { text: "Where is dorm?", correct: false, feedback: "Better: 'Where is the dorm?' Remember to use articles!" }
+    ]}
+  ],
+  2: [
+    { character: 'Professor Lee', avatar: '👩‍🏫', text: "Good morning, everyone! Please introduce yourself to the class.", choices: [
+      { text: "Hello everyone! My name is... and I'm studying English Literature.", correct: true, feedback: "Wonderful introduction! Clear and confident. +25 XP" },
+      { text: "I am student here.", correct: false, feedback: "Add more detail! Tell them your name and what you're studying." },
+      { text: "Hi. Me new.", correct: false, feedback: "Try a complete sentence: 'Hi, I'm new here. My name is...'" }
+    ]},
+    { character: 'Professor Lee', avatar: '👩‍🏫', text: "Which sentence is grammatically correct?", choices: [
+      { text: "She has been studying here since 2023.", correct: true, feedback: "Correct! Present perfect continuous with 'since' for a point in time. +25 XP" },
+      { text: "She study here since 2023.", correct: false, feedback: "Use present perfect: 'has been studying' for an action that started in the past and continues." },
+      { text: "She is study here from 2023.", correct: false, feedback: "'Is study' isn't correct. Use 'has been studying since 2023'." }
+    ]}
+  ],
+  3: [
+    { character: 'Mia', avatar: '👧', text: "Hey! Want to grab lunch together? There's a great café nearby.", choices: [
+      { text: "Sure, I'd love to! What kind of food do they have?", correct: true, feedback: "Perfect! Enthusiastic and keeps the conversation going. +20 XP" },
+      { text: "No.", correct: false, feedback: "That's too abrupt! Even if declining, be polite: 'Sorry, maybe next time?'" },
+      { text: "I want eat.", correct: false, feedback: "Try: 'I'd love to eat!' or 'Sure, let's go!'" }
+    ]},
+    { character: 'Mia', avatar: '👧', text: "Do you have any hobbies? I love painting and playing guitar.", choices: [
+      { text: "That's cool! I enjoy reading and playing basketball in my free time.", correct: true, feedback: "Great! Showing interest and sharing about yourself builds friendships. +20 XP" },
+      { text: "I like do things.", correct: false, feedback: "Be specific! 'I like doing...' or 'I enjoy...' + specific hobbies." },
+      { text: "Hobby no.", correct: false, feedback: "Everyone has interests! Try: 'I enjoy reading' or 'I like sports'." }
+    ]}
+  ]
+};
+
+const achievements = [
+  { id: 'first_step', name: 'First Step', emoji: '👣', desc: 'Complete your first dialogue', earned: true },
+  { id: 'grammar_basics', name: 'Grammar Basics', emoji: '📝', desc: 'Get 5 grammar questions right', earned: true },
+  { id: 'vocab_50', name: 'Word Collector', emoji: '📚', desc: 'Learn 50 vocabulary words', earned: false },
+  { id: 'social_butterfly', name: 'Social Butterfly', emoji: '🦋', desc: 'Complete all friendship missions', earned: false },
+  { id: 'academic_star', name: 'Academic Star', emoji: '⭐', desc: 'Score 90%+ on midterm', earned: false },
+  { id: 'streak_7', name: 'Week Warrior', emoji: '🔥', desc: '7-day learning streak', earned: false },
+  { id: 'english_champ', name: 'English Champion', emoji: '🏆', desc: 'Complete all levels', earned: false },
+  { id: 'perfect_score', name: 'Perfect Score', emoji: '💯', desc: 'Get 100% on any level', earned: false }
+];
+
+const miniGames = [
+  { id: 'vocab', name: 'Vocabulary Battle', emoji: '⚔️', desc: 'Match words with meanings', color: 'from-blue-500 to-blue-700' },
+  { id: 'grammar', name: 'Grammar Fix', emoji: '🔧', desc: 'Correct sentence errors', color: 'from-green-500 to-green-700' },
+  { id: 'email', name: 'Email Builder', emoji: '✉️', desc: 'Arrange email sections', color: 'from-orange-500 to-orange-700' },
+  { id: 'reading', name: 'Reading Challenge', emoji: '📖', desc: 'Answer comprehension questions', color: 'from-purple-500 to-purple-700' },
+  { id: 'interview', name: 'Interview Sim', emoji: '🎤', desc: 'Practice interview skills', color: 'from-pink-500 to-pink-700' }
+];
+
+const vocabWords = [
+  { word: 'Comprehensive', meaning: 'Including all or nearly all elements', options: ['Including all elements', 'Very small', 'Running fast', 'Being quiet'] },
+  { word: 'Collaborate', meaning: 'Work together on a project', options: ['Work alone', 'Work together on a project', 'Destroy something', 'Sleep well'] },
+  { word: 'Articulate', meaning: 'Express clearly and effectively', options: ['Be confused', 'Express clearly and effectively', 'Run quickly', 'Eat slowly'] },
+  { word: 'Prerequisite', meaning: 'Something required beforehand', options: ['Something optional', 'Something required beforehand', 'A type of food', 'A musical instrument'] },
+  { word: 'Plagiarism', meaning: 'Using others work without credit', options: ['A type of disease', 'Using others work without credit', 'A sport', 'A celebration'] }
+];
+
+const grammarQuestions = [
+  { sentence: "She don't like coffee.", correct: "She doesn't like coffee.", hint: "Third person singular uses 'doesn't'" },
+  { sentence: "I have went to the library.", correct: "I have gone to the library.", hint: "Past participle of 'go' is 'gone'" },
+  { sentence: "Their going to the campus.", correct: "They're going to the campus.", hint: "'They're' = 'They are', 'Their' = possession" },
+  { sentence: "Me and him went to class.", correct: "He and I went to class.", hint: "Subject pronouns: 'He and I' not 'Me and him'" },
+  { sentence: "I am agree with you.", correct: "I agree with you.", hint: "'Agree' is already a verb, no need for 'am'" }
+];
+
+// Mini-game states
+let vocabGameState = { current: 0, score: 0, answered: false };
+let grammarGameState = { current: 0, score: 0, userAnswer: '', submitted: false };
+let dialogueState = { levelId: 1, current: 0, score: 0, answered: false, completed: false };
+
+// XP notification
+function showXPNotification(amount) {
+  const notif = document.createElement('div');
+  notif.className = 'xp-notification animate-xp-fly text-primary font-bold text-xl';
+  notif.textContent = `+${amount} XP ✨`;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 1500);
+}
+
+function addXP(amount) {
+  gameState.player.xp += amount;
+  if (gameState.player.xp >= gameState.player.level * 200) {
+    gameState.player.level++;
+    gameState.player.xp = 0;
+  }
+  showXPNotification(amount);
+}
+
+// Render functions
+function render() {
+  const app = document.getElementById('app');
+  switch(gameState.currentScreen) {
+    case 'landing': app.innerHTML = renderLanding(); break;
+    case 'dashboard': app.innerHTML = renderDashboard(); break;
+    case 'story': app.innerHTML = renderStoryMode(); break;
+    case 'dialogue': app.innerHTML = renderDialogue(); break;
+    case 'achievements': app.innerHTML = renderAchievements(); break;
+    case 'minigames': app.innerHTML = renderMiniGames(); break;
+    case 'vocab_game': app.innerHTML = renderVocabGame(); break;
+    case 'grammar_game': app.innerHTML = renderGrammarGame(); break;
+    case 'results': app.innerHTML = renderResults(); break;
+    default: app.innerHTML = renderLanding();
+  }
+  lucide.createIcons();
+}
+
+function renderLanding() {
+  return `
+  <div class="w-full h-full overflow-auto">
+    <!-- Hero -->
+    <section class="hero-pattern min-h-full flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+      <div class="absolute top-10 left-10 text-6xl animate-float opacity-60">🎓</div>
+      <div class="absolute top-20 right-16 text-5xl animate-float delay-200 opacity-60">📚</div>
+      <div class="absolute bottom-20 left-20 text-4xl animate-float delay-300 opacity-60">🌍</div>
+      <div class="absolute bottom-16 right-10 text-5xl animate-float delay-100 opacity-60">✈️</div>
+      
+      <div class="text-center animate-slide-up max-w-4xl mx-auto relative z-10">
+        <div class="inline-flex items-center gap-2 bg-white/80 rounded-full px-4 py-2 mb-6 shadow-sm">
+          <span class="streak-fire">🔥</span>
+          <span class="text-sm font-semibold text-gray-600">10,000+ students learning</span>
+        </div>
+        
+        <h1 class="text-5xl md:text-7xl font-black text-gray-900 mb-4 leading-tight" id="main-title">
+          Campus <span class="text-primary">Journey</span>
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-600 mb-2 font-medium" id="main-subtitle">Master English Through University Life</p>
+        <p class="text-gray-500 mb-10 max-w-xl mx-auto">An interactive story-based game where you navigate university life, make friends, and level up your English skills!</p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <button onclick="gameState.currentScreen='dashboard';render()" class="btn-primary text-white px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-2 justify-center animate-pulse-glow">
+            <i data-lucide="play" class="w-5 h-5"></i> Start Adventure
+          </button>
+          <button onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" class="bg-white text-gray-700 px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 justify-center">
+            <i data-lucide="info" class="w-5 h-5"></i> Learn More
+          </button>
+        </div>
+
+        <!-- Character showcase -->
+        <div class="flex justify-center gap-4 mb-8">
+          <div class="glass rounded-2xl p-4 text-center card-hover">
+            <div class="text-4xl mb-2">👦</div>
+            <p class="text-xs font-semibold text-gray-600">Alex</p>
+          </div>
+          <div class="glass rounded-2xl p-4 text-center card-hover">
+            <div class="text-4xl mb-2">👧</div>
+            <p class="text-xs font-semibold text-gray-600">Mia</p>
+          </div>
+          <div class="glass rounded-2xl p-4 text-center card-hover">
+            <div class="text-4xl mb-2">👩‍🏫</div>
+            <p class="text-xs font-semibold text-gray-600">Prof. Lee</p>
+          </div>
+          <div class="glass rounded-2xl p-4 text-center card-hover">
+            <div class="text-4xl mb-2">👨‍🎓</div>
+            <p class="text-xs font-semibold text-gray-600">You!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="py-20 px-4 bg-white">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-black text-center mb-4">About <span class="text-primary">Campus Journey</span></h2>
+        <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Experience university life while mastering English through interactive stories, mini-games, and real-world scenarios.</p>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="glass rounded-3xl p-8 text-center card-hover">
+            <div class="text-5xl mb-4">🎮</div>
+            <h3 class="font-bold text-xl mb-2">Story-Based Learning</h3>
+            <p class="text-gray-500">Navigate real university scenarios with multiple-choice dialogues and immediate feedback.</p>
+          </div>
+          <div class="glass rounded-3xl p-8 text-center card-hover">
+            <div class="text-5xl mb-4">🏆</div>
+            <h3 class="font-bold text-xl mb-2">Gamified Progress</h3>
+            <p class="text-gray-500">Earn XP, collect badges, maintain streaks, and level up as you improve.</p>
+          </div>
+          <div class="glass rounded-3xl p-8 text-center card-hover">
+            <div class="text-5xl mb-4">💬</div>
+            <h3 class="font-bold text-xl mb-2">Real-World Skills</h3>
+            <p class="text-gray-500">Practice emails, interviews, discussions, and academic writing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Learning Objectives -->
+    <section class="py-20 px-4 campus-bg">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-black text-center mb-12">Learning <span class="text-secondary">Objectives</span></h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          ${['Improve conversational English fluency', 'Master academic vocabulary and grammar', 'Build professional communication skills', 'Develop critical thinking in English', 'Practice formal and informal registers', 'Enhance reading comprehension abilities'].map((obj, i) => `
+          <div class="flex items-center gap-4 bg-white rounded-2xl p-5 shadow-sm card-hover">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white font-bold flex-shrink-0">${i+1}</div>
+            <p class="font-semibold text-gray-700">${obj}</p>
+          </div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-20 px-4 bg-white">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-black text-center mb-12">Game <span class="text-success">Features</span></h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          ${[{e:'📖',t:'8 Story Levels'},{e:'🎯',t:'5 Mini-Games'},{e:'🏅',t:'8+ Achievements'},{e:'📊',t:'Progress Tracking'},{e:'🔥',t:'Daily Streaks'},{e:'💰',t:'Coin Rewards'},{e:'📱',t:'Mobile Friendly'},{e:'🎨',t:'Beautiful UI'}].map(f => `
+          <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 text-center border border-gray-100 card-hover">
+            <div class="text-4xl mb-3">${f.e}</div>
+            <p class="font-bold text-gray-700">${f.t}</p>
+          </div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-20 px-4 campus-bg">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-black text-center mb-12">Student <span class="text-primary">Reviews</span></h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          ${[{name:'Saki',flag:'🇯🇵',text:'This game made learning English so fun! I love the story mode.',rating:5},{name:'Carlos',flag:'🇧🇷',text:'The mini-games helped me remember vocabulary much better than flashcards.',rating:5},{name:'Nana',flag:'🇹🇭',text:'I improved my IELTS score after playing for just 2 months!',rating:5}].map(t => `
+          <div class="bg-white rounded-3xl p-8 shadow-sm card-hover">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-xl">${t.flag}</div>
+              <div>
+                <p class="font-bold">${t.name}</p>
+                <p class="text-yellow-500 text-sm">${'⭐'.repeat(t.rating)}</p>
+              </div>
+            </div>
+            <p class="text-gray-600 italic">"${t.text}"</p>
+          </div>`).join('')}
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 px-4 bg-gradient-to-br from-primary to-blue-800 text-white text-center">
+      <div class="max-w-2xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-black mb-4">Ready to Start Your Journey?</h2>
+        <p class="text-blue-100 mb-8">Join thousands of students mastering English through interactive gameplay.</p>
+        <button onclick="gameState.currentScreen='dashboard';render()" class="bg-white text-primary px-8 py-4 rounded-2xl font-bold text-lg hover:shadow-2xl transition-all">
+          🚀 Begin Now — It's Free!
+        </button>
+      </div>
+    </section>
+  </div>`;
+}
+
+function renderNav() {
+  return `
+  <nav class="bg-white/90 backdrop-blur-lg border-b border-gray-100 px-4 py-3 sticky top-0 z-50">
+    <div class="flex items-center justify-between max-w-7xl mx-auto">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl hover:bg-gray-100">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <h1 class="font-black text-xl text-primary">Campus Journey</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-1 bg-yellow-50 rounded-full px-3 py-1.5">
+          <span class="text-yellow-500">⚡</span>
+          <span class="font-bold text-sm text-yellow-700">${gameState.player.xp} XP</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-1 bg-amber-50 rounded-full px-3 py-1.5">
+          <span>🪙</span>
+          <span class="font-bold text-sm text-amber-700">${gameState.player.coins}</span>
+        </div>
+        <div class="flex items-center gap-1 bg-orange-50 rounded-full px-3 py-1.5">
+          <span class="streak-fire">🔥</span>
+          <span class="font-bold text-sm text-orange-700">${gameState.player.streak}</span>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-lg">
+          ${gameState.player.avatar}
+        </div>
+      </div>
+    </div>
+  </nav>`;
+}
+
+function renderSidebar() {
+  const items = [
+    { icon: 'home', label: 'Home', screen: 'dashboard' },
+    { icon: 'book-open', label: 'Story Mode', screen: 'story' },
+    { icon: 'gamepad-2', label: 'Mini Games', screen: 'minigames' },
+    { icon: 'trophy', label: 'Achievements', screen: 'achievements' },
+    { icon: 'bar-chart-2', label: 'Results', screen: 'results' }
+  ];
+  return `
+  <aside id="sidebar" class="hidden lg:block w-64 bg-white border-r border-gray-100 p-4 flex-shrink-0 overflow-y-auto">
+    <div class="flex items-center gap-3 mb-8 p-3">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-2xl">${gameState.player.avatar}</div>
+      <div>
+        <p class="font-bold text-gray-800">${gameState.player.name}</p>
+        <p class="text-xs text-gray-500">Level ${gameState.player.level} Explorer</p>
+      </div>
+    </div>
+    <nav class="space-y-1">
+      ${items.map(item => `
+      <button onclick="gameState.currentScreen='${item.screen}';render()" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left ${gameState.currentScreen === item.screen ? 'active font-bold' : 'text-gray-600'}">
+        <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+        <span>${item.label}</span>
+      </button>`).join('')}
+    </nav>
+    <div class="mt-8 p-4 bg-gradient-to-br from-primary/5 to-blue-50 rounded-2xl">
+      <p class="text-xs font-bold text-primary mb-2">DAILY CHALLENGE</p>
+      <p class="text-sm text-gray-600 mb-3">Complete 3 dialogues today</p>
+      <div class="w-full bg-gray-200 rounded-full h-2">
+        <div class="bg-primary rounded-full h-2 progress-bar-animated" style="width:66%"></div>
+      </div>
+      <p class="text-xs text-gray-500 mt-1">2/3 completed</p>
+    </div>
+  </aside>`;
+}
+
+function renderDashboard() {
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <div class="flex flex-1 overflow-hidden">
+      ${renderSidebar()}
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-5xl mx-auto">
+          <!-- Welcome -->
+          <div class="mb-8 animate-slide-up">
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900">Welcome back! 👋</h2>
+            <p class="text-gray-500">Continue your campus journey and level up your English.</p>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            ${[
+              {label:'Academic',emoji:'📚',value:gameState.player.stats.academic,color:'blue'},
+              {label:'English',emoji:'🗣️',value:gameState.player.stats.english,color:'green'},
+              {label:'Social',emoji:'👥',value:gameState.player.stats.social,color:'orange'},
+              {label:'Happiness',emoji:'😊',value:gameState.player.stats.happiness,color:'pink'}
+            ].map(s => `
+            <div class="bg-white rounded-2xl p-4 shadow-sm card-hover">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xl">${s.emoji}</span>
+                <span class="text-sm font-semibold text-gray-600">${s.label}</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-3 mb-1">
+                <div class="bg-${s.color}-500 rounded-full h-3 animate-progress" style="width:${s.value}%"></div>
+              </div>
+              <p class="text-xs text-gray-500 text-right">${s.value}%</p>
+            </div>`).join('')}
+          </div>
+
+          <!-- Current Mission -->
+          <div class="bg-gradient-to-r from-primary to-blue-700 rounded-3xl p-6 md:p-8 text-white mb-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 text-8xl opacity-10">🎯</div>
+            <p class="text-blue-200 text-sm font-semibold mb-1">CURRENT MISSION</p>
+            <h3 class="text-2xl font-black mb-2">Level ${gameState.player.currentLevel}: ${levels[gameState.player.currentLevel-1].title}</h3>
+            <p class="text-blue-100 mb-4">${levels[gameState.player.currentLevel-1].desc}</p>
+            <button onclick="startLevel(${gameState.player.currentLevel})" class="bg-white text-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all">
+              Continue →
+            </button>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid md:grid-cols-3 gap-4 mb-8">
+            <button onclick="gameState.currentScreen='story';render()" class="bg-white rounded-2xl p-6 shadow-sm card-hover text-left">
+              <div class="text-3xl mb-3">📖</div>
+              <h4 class="font-bold text-gray-800">Story Mode</h4>
+              <p class="text-sm text-gray-500">Continue the adventure</p>
+            </button>
+            <button onclick="gameState.currentScreen='minigames';render()" class="bg-white rounded-2xl p-6 shadow-sm card-hover text-left">
+              <div class="text-3xl mb-3">🎮</div>
+              <h4 class="font-bold text-gray-800">Mini Games</h4>
+              <p class="text-sm text-gray-500">Practice vocabulary & grammar</p>
+            </button>
+            <button onclick="gameState.currentScreen='achievements';render()" class="bg-white rounded-2xl p-6 shadow-sm card-hover text-left">
+              <div class="text-3xl mb-3">🏆</div>
+              <h4 class="font-bold text-gray-800">Achievements</h4>
+              <p class="text-sm text-gray-500">${achievements.filter(a=>a.earned).length}/${achievements.length} unlocked</p>
+            </button>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <h3 class="font-bold text-gray-800 mb-4">Recent Activity</h3>
+            <div class="space-y-3">
+              ${[
+                {icon:'✅',text:'Completed Level 2: Orientation Week',time:'2 hours ago',xp:'+50 XP'},
+                {icon:'🏅',text:'Earned "Grammar Basics" badge',time:'Yesterday',xp:'+25 XP'},
+                {icon:'🔥',text:'5-day streak! Keep it up!',time:'Today',xp:'+10 XP'}
+              ].map(a => `
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <span class="text-xl">${a.icon}</span>
+                  <div>
+                    <p class="text-sm font-semibold text-gray-700">${a.text}</p>
+                    <p class="text-xs text-gray-400">${a.time}</p>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-primary">${a.xp}</span>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>`;
+}
+
+function renderStoryMode() {
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <div class="flex flex-1 overflow-hidden">
+      ${renderSidebar()}
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-4xl mx-auto">
+          <div class="mb-8">
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 mb-2">Story Mode 📖</h2>
+            <p class="text-gray-500">Navigate your first year at university through interactive chapters.</p>
+          </div>
+          
+          <div class="space-y-4 stagger">
+            ${levels.map((level, i) => `
+            <div class="animate-slide-up opacity-0 ${level.unlocked ? 'cursor-pointer' : 'opacity-60'}" ${level.unlocked ? `onclick="startLevel(${level.id})"` : ''}>
+              <div class="bg-white rounded-2xl p-5 shadow-sm card-hover flex items-center gap-4 ${gameState.player.completedLevels.includes(level.id) ? 'border-2 border-success' : level.unlocked ? 'border border-gray-100' : 'border border-gray-200'}">
+                <div class="w-14 h-14 rounded-2xl ${level.unlocked ? 'bg-gradient-to-br from-primary to-blue-700' : 'bg-gray-200'} flex items-center justify-center text-2xl flex-shrink-0">
+                  ${level.unlocked ? level.emoji : '🔒'}
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-gray-800">Level ${level.id}: ${level.title}</h3>
+                    ${gameState.player.completedLevels.includes(level.id) ? '<span class="text-success text-sm">✓ Complete</span>' : ''}
+                  </div>
+                  <p class="text-sm text-gray-500">${level.desc}</p>
+                </div>
+                ${level.unlocked ? '<i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>' : ''}
+              </div>
+            </div>`).join('')}
+          </div>
+
+          <!-- Final Assessment -->
+          <div class="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-3xl p-6 border border-yellow-200">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-3xl">🎓</span>
+              <div>
+                <h3 class="font-bold text-gray-800">Final Semester Assessment</h3>
+                <p class="text-sm text-gray-500">Complete all 8 levels to unlock</p>
+              </div>
+            </div>
+            <div class="w-full bg-yellow-100 rounded-full h-3">
+              <div class="bg-yellow-500 rounded-full h-3" style="width:${(gameState.player.completedLevels.length/8)*100}%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">${gameState.player.completedLevels.length}/8 levels completed</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>`;
+}
+
+function startLevel(levelId) {
+  dialogueState = { levelId, current: 0, score: 0, answered: false, completed: false };
+  gameState.currentScreen = 'dialogue';
+  render();
+}
+
+function renderDialogue() {
+  const level = levels[dialogueState.levelId - 1];
+  const levelDialogues = dialogues[dialogueState.levelId] || dialogues[1];
+  
+  if (dialogueState.completed) {
+    return renderLevelComplete();
+  }
+
+  const current = levelDialogues[dialogueState.current];
+  
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <main class="flex-1 overflow-y-auto p-4 md:p-8">
+      <div class="max-w-3xl mx-auto">
+        <!-- Level Header -->
+        <div class="flex items-center justify-between mb-6">
+          <button onclick="gameState.currentScreen='story';render()" class="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            <span class="font-semibold">Back</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-500">${dialogueState.current + 1}/${levelDialogues.length}</span>
+            <div class="w-32 bg-gray-200 rounded-full h-2">
+              <div class="bg-primary rounded-full h-2 transition-all" style="width:${((dialogueState.current+1)/levelDialogues.length)*100}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 mb-6 relative overflow-hidden">
+          <div class="absolute top-4 right-4 text-4xl opacity-30">${level.emoji}</div>
+          <p class="text-sm font-semibold text-primary mb-1">Level ${level.id}: ${level.title}</p>
+          <h3 class="text-xl font-black text-gray-800">Scene ${dialogueState.current + 1}</h3>
+        </div>
+
+        <!-- Character & Dialogue -->
+        <div class="bg-white rounded-3xl shadow-sm p-6 md:p-8 mb-6 animate-slide-up">
+          <div class="flex items-start gap-4 mb-6">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-blue-50 flex items-center justify-center text-3xl flex-shrink-0">
+              ${current.avatar}
+            </div>
+            <div class="flex-1">
+              <p class="font-bold text-primary mb-1">${current.character}</p>
+              <div class="dialogue-box bg-gray-50 rounded-2xl rounded-tl-sm p-4">
+                <p class="text-gray-800 text-lg">${current.text}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Choices -->
+          <div class="space-y-3">
+            <p class="text-sm font-semibold text-gray-500 mb-2">Choose your response:</p>
+            ${current.choices.map((choice, i) => `
+            <button onclick="selectChoice(${i})" 
+              class="choice-btn w-full text-left p-4 rounded-2xl border-2 border-gray-200 ${dialogueState.answered ? (choice.correct ? 'correct' : 'incorrect') : ''}" 
+              ${dialogueState.answered ? 'disabled' : ''}>
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-lg ${dialogueState.answered && choice.correct ? 'bg-green-100 text-green-700' : dialogueState.answered && !choice.correct ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'} flex items-center justify-center font-bold text-sm">${String.fromCharCode(65+i)}</span>
+                <span class="font-medium text-gray-700">${choice.text}</span>
+                ${dialogueState.answered && choice.correct ? '<span class="ml-auto text-green-500">✓</span>' : ''}
+                ${dialogueState.answered && !choice.correct ? '<span class="ml-auto text-red-400">✗</span>' : ''}
+              </div>
+              ${dialogueState.answered ? `<p class="mt-2 text-sm ${choice.correct ? 'text-green-600' : 'text-red-500'} pl-11">${choice.feedback}</p>` : ''}
+            </button>`).join('')}
+          </div>
+        </div>
+
+        ${dialogueState.answered ? `
+        <div class="text-center">
+          <button onclick="nextDialogue()" class="btn-primary text-white px-8 py-3 rounded-2xl font-bold">
+            ${dialogueState.current < levelDialogues.length - 1 ? 'Next →' : 'Complete Level 🎉'}
+          </button>
+        </div>` : ''}
+      </div>
+    </main>
+  </div>`;
+}
+
+function selectChoice(index) {
+  if (dialogueState.answered) return;
+  dialogueState.answered = true;
+  const levelDialogues = dialogues[dialogueState.levelId] || dialogues[1];
+  const current = levelDialogues[dialogueState.current];
+  if (current.choices[index].correct) {
+    dialogueState.score++;
+    addXP(20);
+    gameState.player.coins += 5;
+  }
+  render();
+}
+
+function nextDialogue() {
+  const levelDialogues = dialogues[dialogueState.levelId] || dialogues[1];
+  if (dialogueState.current < levelDialogues.length - 1) {
+    dialogueState.current++;
+    dialogueState.answered = false;
+    render();
+  } else {
+    dialogueState.completed = true;
+    if (!gameState.player.completedLevels.includes(dialogueState.levelId)) {
+      gameState.player.completedLevels.push(dialogueState.levelId);
+      if (dialogueState.levelId < 8) {
+        levels[dialogueState.levelId].unlocked = true;
+        gameState.player.currentLevel = dialogueState.levelId + 1;
+      }
+    }
+    gameState.player.stats.english = Math.min(100, gameState.player.stats.english + 5);
+    gameState.player.stats.academic = Math.min(100, gameState.player.stats.academic + 3);
+    gameState.player.stats.social = Math.min(100, gameState.player.stats.social + 4);
+    render();
+  }
+}
+
+function renderLevelComplete() {
+  const level = levels[dialogueState.levelId - 1];
+  const levelDialogues = dialogues[dialogueState.levelId] || dialogues[1];
+  const percentage = Math.round((dialogueState.score / levelDialogues.length) * 100);
+  const stars = percentage >= 90 ? 3 : percentage >= 60 ? 2 : 1;
+  
+  return `
+  <div class="h-full flex flex-col items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 max-w-md w-full text-center animate-slide-up">
+      <div class="text-6xl mb-4">🎉</div>
+      <h2 class="text-2xl font-black text-gray-900 mb-2">Level Complete!</h2>
+      <p class="text-gray-500 mb-6">${level.title}</p>
+      
+      <div class="flex justify-center gap-2 mb-6">
+        ${Array(3).fill(0).map((_, i) => `<span class="text-4xl ${i < stars ? '' : 'opacity-20'}">${i < stars ? '⭐' : '☆'}</span>`).join('')}
+      </div>
+      
+      <div class="bg-gray-50 rounded-2xl p-4 mb-6">
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <p class="text-2xl font-black text-primary">${dialogueState.score}/${levelDialogues.length}</p>
+            <p class="text-xs text-gray-500">Correct</p>
+          </div>
+          <div>
+            <p class="text-2xl font-black text-secondary">+${dialogueState.score * 20}</p>
+            <p class="text-xs text-gray-500">XP Earned</p>
+          </div>
+          <div>
+            <p class="text-2xl font-black text-green-500">+${dialogueState.score * 5}</p>
+            <p class="text-xs text-gray-500">Coins</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex flex-col gap-3">
+        <button onclick="gameState.currentScreen='story';render()" class="btn-primary text-white px-6 py-3 rounded-2xl font-bold">
+          Continue Journey →
+        </button>
+        <button onclick="startLevel(${dialogueState.levelId})" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-2xl font-bold hover:bg-gray-200 transition-colors">
+          Replay Level
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAchievements() {
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <div class="flex flex-1 overflow-hidden">
+      ${renderSidebar()}
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-4xl mx-auto">
+          <div class="mb-8">
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 mb-2">Achievements 🏆</h2>
+            <p class="text-gray-500">${achievements.filter(a=>a.earned).length} of ${achievements.length} badges earned</p>
+          </div>
+          
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${achievements.map(a => `
+            <div class="bg-white rounded-2xl p-6 shadow-sm card-hover text-center ${a.earned ? 'border-2 border-yellow-300' : 'opacity-60'}">
+              <div class="text-5xl mb-3 ${a.earned ? 'animate-badge-pop' : ''}">${a.emoji}</div>
+              <h4 class="font-bold text-gray-800">${a.name}</h4>
+              <p class="text-sm text-gray-500 mt-1">${a.desc}</p>
+              ${a.earned ? '<span class="inline-block mt-3 text-xs font-bold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">✓ Earned</span>' : '<span class="inline-block mt-3 text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">🔒 Locked</span>'}
+            </div>`).join('')}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>`;
+}
+
+function renderMiniGames() {
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <div class="flex flex-1 overflow-hidden">
+      ${renderSidebar()}
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-4xl mx-auto">
+          <div class="mb-8">
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 mb-2">Mini Games 🎮</h2>
+            <p class="text-gray-500">Practice English skills with fun challenges!</p>
+          </div>
+          
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${miniGames.map(g => `
+            <button onclick="startMiniGame('${g.id}')" class="bg-white rounded-3xl p-6 shadow-sm card-hover text-left">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${g.color} flex items-center justify-center text-2xl mb-4">${g.emoji}</div>
+              <h4 class="font-bold text-gray-800 mb-1">${g.name}</h4>
+              <p class="text-sm text-gray-500">${g.desc}</p>
+            </button>`).join('')}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>`;
+}
+
+function startMiniGame(id) {
+  if (id === 'vocab') {
+    vocabGameState = { current: 0, score: 0, answered: false };
+    gameState.currentScreen = 'vocab_game';
+  } else if (id === 'grammar') {
+    grammarGameState = { current: 0, score: 0, userAnswer: '', submitted: false };
+    gameState.currentScreen = 'grammar_game';
+  } else {
+    vocabGameState = { current: 0, score: 0, answered: false };
+    gameState.currentScreen = 'vocab_game';
+  }
+  render();
+}
+
+function renderVocabGame() {
+  const word = vocabWords[vocabGameState.current];
+  if (!word) return renderMiniGameComplete('Vocabulary Battle', vocabGameState.score, vocabWords.length);
+  
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <main class="flex-1 overflow-y-auto p-4 md:p-8">
+      <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <button onclick="gameState.currentScreen='minigames';render()" class="flex items-center gap-2 text-gray-500 hover:text-gray-800">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i> Back
+          </button>
+          <span class="font-bold text-primary">${vocabGameState.current + 1}/${vocabWords.length}</span>
+        </div>
+        
+        <div class="bg-white rounded-3xl shadow-sm p-8 text-center mb-6">
+          <p class="text-sm font-semibold text-primary mb-2">⚔️ VOCABULARY BATTLE</p>
+          <h3 class="text-3xl font-black text-gray-900 mb-2">${word.word}</h3>
+          <p class="text-gray-500 mb-8">What does this word mean?</p>
+          
+          <div class="grid gap-3">
+            ${word.options.map((opt, i) => `
+            <button onclick="answerVocab(${i})" 
+              class="choice-btn p-4 rounded-2xl border-2 border-gray-200 text-left font-medium ${vocabGameState.answered ? (opt === word.meaning ? 'correct' : 'incorrect') : ''}"
+              ${vocabGameState.answered ? 'disabled' : ''}>
+              ${opt}
+              ${vocabGameState.answered && opt === word.meaning ? ' ✓' : ''}
+            </button>`).join('')}
+          </div>
+        </div>
+        
+        ${vocabGameState.answered ? `
+        <div class="text-center">
+          <button onclick="nextVocab()" class="btn-primary text-white px-8 py-3 rounded-2xl font-bold">Next Word →</button>
+        </div>` : ''}
+      </div>
+    </main>
+  </div>`;
+}
+
+function answerVocab(index) {
+  if (vocabGameState.answered) return;
+  vocabGameState.answered = true;
+  if (vocabWords[vocabGameState.current].options[index] === vocabWords[vocabGameState.current].meaning) {
+    vocabGameState.score++;
+    addXP(15);
+  }
+  render();
+}
+
+function nextVocab() {
+  vocabGameState.current++;
+  vocabGameState.answered = false;
+  render();
+}
+
+function renderGrammarGame() {
+  const q = grammarQuestions[grammarGameState.current];
+  if (!q) return renderMiniGameComplete('Grammar Fix', grammarGameState.score, grammarQuestions.length);
+  
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <main class="flex-1 overflow-y-auto p-4 md:p-8">
+      <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <button onclick="gameState.currentScreen='minigames';render()" class="flex items-center gap-2 text-gray-500 hover:text-gray-800">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i> Back
+          </button>
+          <span class="font-bold text-primary">${grammarGameState.current + 1}/${grammarQuestions.length}</span>
+        </div>
+        
+        <div class="bg-white rounded-3xl shadow-sm p-8 mb-6">
+          <p class="text-sm font-semibold text-primary mb-4">🔧 GRAMMAR FIX</p>
+          <p class="text-gray-500 mb-2">Fix the error in this sentence:</p>
+          <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+            <p class="text-lg font-medium text-red-700">"${q.sentence}"</p>
+          </div>
+          
+          <label for="grammar-input" class="text-sm font-semibold text-gray-600 mb-2 block">Your correction:</label>
+          <input id="grammar-input" type="text" 
+            value="${grammarGameState.userAnswer}" 
+            oninput="grammarGameState.userAnswer=this.value"
+            class="w-full p-4 border-2 border-gray-200 rounded-2xl text-lg focus:border-primary focus:outline-none transition-colors"
+            placeholder="Type the correct sentence..."
+            ${grammarGameState.submitted ? 'disabled' : ''}>
+          
+          ${grammarGameState.submitted ? `
+          <div class="mt-4 p-4 rounded-2xl ${grammarGameState.userAnswer.trim().toLowerCase() === q.correct.toLowerCase() ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}">
+            <p class="font-bold ${grammarGameState.userAnswer.trim().toLowerCase() === q.correct.toLowerCase() ? 'text-green-700' : 'text-orange-700'}">
+              ${grammarGameState.userAnswer.trim().toLowerCase() === q.correct.toLowerCase() ? '✓ Correct!' : '✗ Not quite!'}
+            </p>
+            <p class="text-sm text-gray-600 mt-1">Answer: "${q.correct}"</p>
+            <p class="text-sm text-gray-500 mt-1">💡 ${q.hint}</p>
+          </div>` : ''}
+          
+          <div class="mt-6 text-center">
+            ${!grammarGameState.submitted ? `
+            <button onclick="submitGrammar()" class="btn-primary text-white px-8 py-3 rounded-2xl font-bold">Check Answer</button>
+            ` : `
+            <button onclick="nextGrammar()" class="btn-primary text-white px-8 py-3 rounded-2xl font-bold">Next →</button>
+            `}
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>`;
+}
+
+function submitGrammar() {
+  grammarGameState.submitted = true;
+  const q = grammarQuestions[grammarGameState.current];
+  if (grammarGameState.userAnswer.trim().toLowerCase() === q.correct.toLowerCase()) {
+    grammarGameState.score++;
+    addXP(20);
+  }
+  render();
+}
+
+function nextGrammar() {
+  grammarGameState.current++;
+  grammarGameState.userAnswer = '';
+  grammarGameState.submitted = false;
+  render();
+}
+
+function renderMiniGameComplete(gameName, score, total) {
+  const percentage = Math.round((score/total)*100);
+  return `
+  <div class="h-full flex flex-col items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 max-w-md w-full text-center animate-slide-up">
+      <div class="text-6xl mb-4">${percentage >= 80 ? '🏆' : percentage >= 50 ? '👍' : '💪'}</div>
+      <h2 class="text-2xl font-black text-gray-900 mb-2">${gameName} Complete!</h2>
+      <p class="text-4xl font-black text-primary my-4">${score}/${total}</p>
+      <p class="text-gray-500 mb-6">${percentage}% correct</p>
+      <div class="flex flex-col gap-3">
+        <button onclick="gameState.currentScreen='minigames';render()" class="btn-primary text-white px-6 py-3 rounded-2xl font-bold">Play More Games</button>
+        <button onclick="gameState.currentScreen='dashboard';render()" class="bg-gray-100 text-gray-700 px-6 py-3 rounded-2xl font-bold">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderResults() {
+  const totalScore = Math.round((gameState.player.stats.academic + gameState.player.stats.english + gameState.player.stats.social + gameState.player.stats.happiness) / 4);
+  const grade = totalScore >= 80 ? 'Excellent' : totalScore >= 60 ? 'Good' : 'Needs Improvement';
+  const gradeEmoji = totalScore >= 80 ? '🌟' : totalScore >= 60 ? '👏' : '💪';
+  const gradeMsg = totalScore >= 80 ? 'You received a scholarship and became one of the top students!' : totalScore >= 60 ? 'You successfully completed your first semester abroad!' : 'You passed but still need more English practice. Keep going!';
+  
+  return `
+  <div class="h-full flex flex-col">
+    ${renderNav()}
+    <div class="flex flex-1 overflow-hidden">
+      ${renderSidebar()}
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-3xl mx-auto">
+          <div class="bg-white rounded-3xl shadow-sm p-8 md:p-12 text-center mb-8">
+            <div class="text-6xl mb-4">${gradeEmoji}</div>
+            <h2 class="text-3xl font-black text-gray-900 mb-2">Semester Report</h2>
+            <p class="text-lg text-gray-500 mb-2">${grade} Student</p>
+            <p class="text-gray-600 max-w-md mx-auto mb-8">${gradeMsg}</p>
+            
+            <div class="inline-flex items-center gap-2 bg-primary/10 rounded-full px-6 py-3 mb-8">
+              <span class="text-3xl font-black text-primary">${totalScore}%</span>
+              <span class="text-gray-500 font-semibold">Overall Score</span>
+            </div>
+
+            <!-- Stats breakdown -->
+            <div class="grid sm:grid-cols-2 gap-4 text-left max-w-lg mx-auto">
+              ${[
+                {label:'Academic Score',emoji:'📚',value:gameState.player.stats.academic,color:'blue'},
+                {label:'English Skill',emoji:'🗣️',value:gameState.player.stats.english,color:'green'},
+                {label:'Social Life',emoji:'👥',value:gameState.player.stats.social,color:'orange'},
+                {label:'Happiness',emoji:'😊',value:gameState.player.stats.happiness,color:'pink'}
+              ].map(s => `
+              <div class="bg-gray-50 rounded-2xl p-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span>${s.emoji}</span>
+                  <span class="text-sm font-semibold text-gray-600">${s.label}</span>
+                  <span class="ml-auto font-bold text-${s.color}-600">${s.value}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div class="bg-${s.color}-500 rounded-full h-2.5 animate-progress" style="width:${s.value}%"></div>
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>
+
+          <!-- Achievements summary -->
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h3 class="font-bold text-gray-800 mb-4">Achievements Earned</h3>
+            <div class="flex flex-wrap gap-3">
+              ${achievements.filter(a => a.earned).map(a => `
+              <div class="flex items-center gap-2 bg-yellow-50 rounded-full px-4 py-2">
+                <span class="text-xl">${a.emoji}</span>
+                <span class="text-sm font-semibold text-yellow-700">${a.name}</span>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>`;
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) sidebar.classList.toggle('hidden');
+}
+
+// Element SDK
+const defaultConfig = {
+  game_title: 'Campus Journey',
+  subtitle: 'Master English Through University Life',
+  background_color: '#F8FAFC',
+  surface_color: '#FFFFFF',
+  text_color: '#1F2937',
+  primary_color: '#2563EB',
+  secondary_color: '#F59E0B',
+  font_family: 'Nunito',
+  font_size: 16
+};
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    document.body.style.backgroundColor = config.background_color || defaultConfig.background_color;
+    const title = document.getElementById('main-title');
+    const sub = document.getElementById('main-subtitle');
+    if (title) title.innerHTML = (config.game_title || defaultConfig.game_title).replace('Journey', '<span class="text-primary">Journey</span>');
+    if (sub) sub.textContent = config.subtitle || defaultConfig.subtitle;
+    document.body.style.fontFamily = `${config.font_family || defaultConfig.font_family}, sans-serif`;
+    const size = config.font_size || defaultConfig.font_size;
+    document.documentElement.style.fontSize = `${size}px`;
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+      { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } }
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['game_title', config.game_title || defaultConfig.game_title],
+    ['subtitle', config.subtitle || defaultConfig.subtitle]
+  ])
+});
+
+// Initial render
+render();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0768f0408a4fd9f',t:'MTc4MDczOTkwNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
